@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Momentum & Impulse Lab</title>
+<style>
+:root{
+  --bg:#f3f5fb;
+  --card:#ffffff;
+  --ink:#18233c;
+  --muted:#68738b;
+  --blue:#4263eb;
+  --cyan:#20a4b8;
+  --orange:#f08c36;
+  --line:#e2e7f0;
+  --green:#16845b;
+  --red:#d94848;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:Arial,sans-serif;line-height:1.55;
+}
+header{
+  padding:28px 18px 24px;
+  background:linear-gradient(135deg,#172554,#344fc5);
+  color:white;
+}
+.wrap{max-width:1050px;margin:auto;padding:0 16px}
+.eyebrow{font-size:12px;letter-spacing:2px;opacity:.8;font-weight:bold}
+h1{font-size:clamp(25px,5vw,40px);margin:8px 0}
+header p{max-width:650px;color:#e1e8ff;margin:0}
+main{padding:22px 0 45px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.tab{
+  border:1px solid var(--line);background:white;color:var(--ink);
+  padding:11px 15px;border-radius:12px;font-weight:bold;cursor:pointer;
+}
+.tab.active{background:var(--blue);color:white;border-color:var(--blue)}
+.panel{display:none}
+.panel.active{display:block}
+.card{
+  background:var(--card);border:1px solid var(--line);
+  border-radius:18px;padding:19px;margin-bottom:16px;
+  box-shadow:0 5px 20px #18233c08;
+}
+h2{font-size:21px;margin:0 0 7px}
+h3{font-size:16px;margin:0 0 8px}
+.muted{color:var(--muted);font-size:14px}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.layout{grid-template-columns:1fr}}
+.control{margin:19px 0}
+.control label{display:flex;justify-content:space-between;gap:12px;font-weight:bold}
+input[type=range]{width:100%;accent-color:var(--blue);margin-top:12px}
+select,input[type=number]{
+  width:100%;padding:11px;border:1px solid var(--line);
+  border-radius:10px;font-size:15px;background:white;color:var(--ink)
+}
+.scene{
+  min-height:205px;background:linear-gradient(#eaf3ff 0 65%,#d8e2d2 65%);
+  border-radius:14px;position:relative;overflow:hidden;margin-top:14px;
+}
+.road{
+  position:absolute;bottom:0;height:35%;width:100%;
+  background:#49536a;border-top:4px solid #d4d9e2;
+}
+.road:after{
+  content:"";position:absolute;left:0;right:0;top:48%;
+  border-top:3px dashed #fff8;
+}
+.sun{
+  position:absolute;right:25px;top:18px;width:38px;height:38px;
+  border-radius:50%;background:#ffd166;
+}
+.car{
+  position:absolute;bottom:38px;left:7%;font-size:48px;
+  transition:left .4s ease;z-index:2;
+}
+.barrier{
+  position:absolute;bottom:37px;right:12%;font-size:44px;z-index:2;
+}
+.ball{
+  position:absolute;left:16%;top:48px;font-size:43px;
+  transition:all .35s ease;
+}
+.hand{
+  position:absolute;right:16%;top:53px;font-size:45px;
+}
+.metrics{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+  margin-top:15px;
+}
+.metric{
+  padding:13px;border-radius:13px;background:#f4f6ff;
+  border:1px solid #e5eaff;
+}
+.metric small{display:block;color:var(--muted);font-size:12px}
+.metric strong{font-size:21px;display:block;margin-top:3px}
+.metric span{font-size:12px;color:var(--muted)}
+.formula{
+  background:#f0f7ff;border-left:4px solid var(--blue);
+  border-radius:8px;padding:12px 14px;margin-top:12px;font-size:14px;
+}
+button.action{
+  border:0;background:var(--blue);color:white;padding:12px 17px;
+  border-radius:10px;font-weight:bold;cursor:pointer;
+}
+button.secondary{background:#e9edff;color:#2c47bd}
+button:focus,input:focus,select:focus{outline:2px solid #8ca2ff;outline-offset:2px}
+.question{
+  padding:16px 0;border-bottom:1px solid var(--line);
+}
+.question:last-child{border-bottom:0}
+.question p{font-weight:bold;margin:0 0 10px}
+.option{
+  display:block;padding:10px 12px;border:1px solid var(--line);
+  border-radius:10px;margin:7px 0;cursor:pointer;font-weight:normal;
+}
+.option:has(input:checked){border-color:var(--blue);background:#f1f4ff}
+.option input{margin-right:8px;accent-color:var(--blue)}
+.feedback{margin-top:9px;font-size:14px;font-weight:bold}
+.good{color:var(--green)}.bad{color:var(--red)}
+.score{
+  padding:16px;background:#f0f7ff;border-radius:12px;margin-top:14px;
+  display:none;
+}
+.tag{
+  display:inline-block;background:#e9edff;color:#314fc5;
+  border-radius:100px;padding:5px 9px;font-size:12px;font-weight:bold;
+}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="eyebrow">VIRTUAL PHYSICS LAB · SMA/MA</div>
+    <h1>Momentum & Impulse Lab</h1>
+    <p>Ubah kondisi, amati hasil simulasi, lalu gunakan bukti untuk menjawab pertanyaan fisika.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="tabs">
+    <button class="tab active" data-tab="mobil">🚗 Tabrakan Mobil</button>
+    <button class="tab" data-tab="bola">🏀 Menangkap Bola</button>
+    <button class="tab" data-tab="analisis">🧠 Tantangan Analisis</button>
+  </div>
+
+  <section id="mobil" class="panel active">
+    <div class="layout">
+      <div class="card">
+        <h2>Atur kondisi tabrakan</h2>
+        <p class="muted">Ubah satu variabel dan perhatikan perubahan hasilnya.</p>
+
+        <div class="control">
+          <label for="massCar">Massa mobil <span id="massCarOut">1000 kg</span></label>
+          <input id="massCar" type="range" min="500" max="2000" step="100" value="1000">
+        </div>
+        <div class="control">
+          <label for="speedCar">Kecepatan sebelum tabrakan <span id="speedCarOut">20 m/s</span></label>
+          <input id="speedCar" type="range" min="5" max="30" step="1" value="20">
+        </div>
+        <div class="control">
+          <label for="timeCar">Waktu berhenti saat tabrakan <span id="timeCarOut">0,2 s</span></label>
+          <input id="timeCar" type="range" min="0.1" max="1" step="0.1" value="0.2">
+        </div>
+        <div class="control">
+          <label for="zoneCar">Zona remuk mobil</label>
+          <select id="zoneCar">
+            <option value="0.2">Zona remuk pendek</option>
+            <option value="0.5">Zona remuk sedang</option>
+            <option value="1">Zona remuk panjang</option>
+          </select>
+          <p class="muted">Pilihan ini mengatur waktu tabrakan dalam model sederhana.</p>
+        </div>
+        <button class="action" id="resetCar">Kembalikan kondisi awal</button>
+      </div>
+
+      <div class="card">
+        <h2>Visualisasi kejadian</h2>
+        <span class="tag" id="carStatus">Mobil bergerak</span>
+        <div class="scene">
+          <div class="sun"></div>
+          <div class="car" id="carEmoji">🚗</div>
+          <div class="barrier">🧱</div>
+          <div class="road"></div>
+        </div>
+        <div class="metrics">
+          <div class="metric">
+            <small>Momentum awal</small>
+            <strong id="pCar">20.000</strong>
+            <span>kg m/s</span>
+          </div>
+          <div class="metric">
+            <small>Perubahan momentum</small>
+            <strong id="dpCar">−20.000</strong>
+            <span>kg m/s</span>
+          </div>
+          <div class="metric">
+            <small>Impuls</small>
+            <strong id="jCar">−20.000</strong>
+            <span>N s</span>
+          </div>
+          <div class="metric">
+            <small>Gaya rata-rata model</small>
+            <strong id="fCar">100.000</strong>
+            <span>N · besar gaya</span>
+          </div>
+          <div class="metric" style="grid-column:1/-1">
+            <small>Energi kinetik sebelum tabrakan</small>
+            <strong id="keCar">200.000</strong>
+            <span>Joule</span>
+          </div>
+        </div>
+        <div class="formula">
+          <b>Hubungan konsep</b><br>
+          Momentum: p = m × v<br>
+          Impuls: I = Δp<br>
+          Besar gaya rata-rata model: F = |Δp| / Δt<br>
+          Energi kinetik: Ek = ½mv²
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Amati dan pikirkan</h3>
+      <p id="carInsight">Perhatikan bagaimana perubahan waktu tabrakan memengaruhi besar gaya.</p>
+      <p class="muted">Catatan: model ini menganggap mobil berhenti setelah menabrak penghalang. Ini bukan prediksi kerusakan atau simulasi rekayasa keselamatan kendaraan yang sesungguhnya.</p>
+    </div>
+  </section>
+
+  <section id="bola" class="panel">
+    <div class="layout">
+      <div class="card">
+        <h2>Eksperimen menangkap bola</h2>
+        <p class="muted">Bayangkan bola bergerak menuju tangan lalu berhenti.</p>
+        <div class="control">
+          <label for="massBall">Massa bola <span id="massBallOut">0,5 kg</span></label>
+          <input id="massBall" type="range" min="0.1" max="2" step="0.1" value="0.5">
+        </div>
+        <div class="control">
+          <label for="speedBall">Kecepatan bola <span id="speedBallOut">10 m/s</span></label>
+          <input id="speedBall" type="range" min="2" max="20" step="1" value="10">
+        </div>
+        <div class="control">
+          <label for="timeBall">Waktu tangan menghentikan bola <span id="timeBallOut">0,2 s</span></label>
+          <input id="timeBall" type="range" min="0.1" max="1" step="0.1" value="0.2">
+        </div>
+        <button class="action" id="resetBall">Kembalikan kondisi awal</button>
+      </div>
+      <div class="card">
+        <h2>Visualisasi bola</h2>
+        <div class="scene">
+          <div class="sun"></div>
+          <div class="ball" id="ballEmoji">🏀</div>
+          <div class="hand">👐</div>
+          <div class="road"></div>
+        </div>
+        <div class="metrics">
+          <div class="metric">
+            <small>Momentum awal</small>
+            <strong id="pBall">5</strong><span>kg m/s</span>
+          </div>
+          <div class="metric">
+            <small>Impuls saat berhenti</small>
+            <strong id="jBall">−5</strong><span>N s</span>
+          </div>
+          <div class="metric">
+            <small>Besar gaya rata-rata model</small>
+            <strong id="fBall">25</strong><span>N</span>
+          </div>
+          <div class="metric">
+            <small>Energi kinetik awal</small>
+            <strong id="keBall">25</strong><span>J</span>
+          </div>
+        </div>
+        <div class="formula">
+          Jika bola berhenti, perubahan momentumnya sama dengan negatif momentum awalnya. Besar impuls sama dengan besar perubahan momentum.
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Hubungkan dengan kehidupan sehari-hari</h3>
+      <p>Ketika menangkap bola, tangan dapat bergerak sedikit mengikuti arah bola untuk memperpanjang waktu penghentian.</p>
+      <p><b>Pertanyaan:</b> Jika bola yang sama berhenti dalam waktu lebih lama, apakah perubahan momentumnya berubah? Bagaimana dengan besar gaya rata-rata model?</p>
+    </div>
+  </section>
+
+  <section id="analisis" class="panel">
+    <div class="card">
+      <h2>Tantangan analisis</h2>
+      <p class="muted">Jawab berdasarkan konsep dan hasil simulasi. Pilih satu jawaban setiap soal.</p>
+      <form id="quiz">
+        <div class="question">
+          <p>1. Mobil bermassa 1.000 kg bergerak dengan kecepatan 20 m/s lalu berhenti. Berapa besar perubahan momentumnya?</p>
+          <label class="option"><input type="radio" name="q1" value="a"> 2.000 kg m/s</label>
+          <label class="option"><input type="radio" name="q1" value="b"> 20.000 kg m/s</label>
+          <label class="option"><input type="radio" name="q1" value="c"> 200.000 kg m/s</label>
+          <div class="feedback" id="fb1"></div>
+        </div>
+        <div class="question">
+          <p>2. Dua mobil memiliki momentum awal yang sama dan sama-sama berhenti. Mobil A berhenti dalam 0,1 s, sedangkan mobil B dalam 0,5 s. Pernyataan yang tepat adalah ...</p>
+          <label class="option"><input type="radio" name="q2" value="a"> Impuls mobil A lebih besar</label>
+          <label class="option"><input type="radio" name="q2" value="b"> Impuls keduanya sama, tetapi besar gaya rata-rata A lebih besar</label>
+          <label class="option"><input type="radio" name="q2" value="c"> Besar gaya rata-rata keduanya selalu sama</label>
+          <div class="feedback" id="fb2"></div>
+        </div>
+        <div class="question">
+          <p>3. Mengapa zona remuk pada kendaraan dapat membantu meningkatkan keselamatan penumpang saat tabrakan?</p>
+          <label class="option"><input type="radio" name="q3" value="a"> Menghilangkan seluruh momentum mobil</label>
+          <label class="option"><input type="radio" name="q3" value="b"> Membuat massa mobil menjadi nol</label>
+          <label class="option"><input type="radio" name="q3" value="c"> Dapat memperpanjang waktu tumbukan sehingga besar gaya rata-rata dapat berkurang</label>
+          <div class="feedback" id="fb3"></div>
+        </div>
+        <div class="question">
+          <p>4. Bola bermassa 0,5 kg bergerak 10 m/s lalu ditangkap hingga berhenti. Berapa besar impuls yang dialami bola?</p>
+          <label class="option"><input type="radio" name="q4" value="a"> 5 N s</label>
+          <label class="option"><input type="radio" name="q4" value="b"> 0,5 N s</label>
+          <label class="option"><input type="radio" name="q4" value="c"> 50 N s</label>
+          <div class="feedback" id="fb4"></div>
+        </div>
+        <div class="question">
+          <p>5. Sebuah benda memiliki momentum awal yang sama pada dua kejadian. Apa yang pasti sama jika keduanya berhenti?</p>
+          <label class="option"><input type="radio" name="q5" value="a"> Waktu berhenti</label>
+          <label class="option"><input type="radio" name="q5" value="b"> Besar perubahan momentum dan besar impuls</label>
+          <label class="option"><input type="radio" name="q5" value="c"> Besar gaya rata-rata</label>
+          <div class="feedback" id="fb5"></div>
+        </div>
+        <button class="action" type="submit">Periksa jawaban</button>
+        <button class="action secondary" type="button" id="clearQuiz">Ulangi soal</button>
+      </form>
+      <div class="score" id="scoreBox"></div>
+    </div>
+    <div class="card">
+      <h3>Refleksi singkat</h3>
+      <p>Jelaskan dengan bahasamu sendiri: mengapa memperpanjang waktu tumbukan dapat mengurangi besar gaya rata-rata, meskipun perubahan momentumnya tetap sama?</p>
+      <textarea id="reflection" rows="4" style="width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit" placeholder="Tulis penjelasanmu di sini..."></textarea>
+      <div style="margin-top:12px;display:flex;gap:9px;flex-wrap:wrap">
+        <button class="action" id="saveReflection">Simpan refleksi di perangkat</button>
+        <button class="action secondary" id="downloadReport">Unduh laporan belajar</button>
+      </div>
+      <p class="muted" id="saveStatus"></p>
+    </div>
+  </section>
+</main>
+<footer>Momentum & Impulse Lab · Model pembelajaran interaktif · Hasil tersimpan di perangkat ini</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = n => Number(n).toLocaleString('id-ID',{
+  maximumFractionDigits:2
+});
+const dec = n => Number(n).toLocaleString('id-ID',{
+  maximumFractionDigits:1
+});
+
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    $(btn.dataset.tab).classList.add('active');
+  });
+});
+
+function updateCar(){
+  const m=+$('massCar').value;
+  const v=+$('speedCar').value;
+  const t=+$('timeCar').value;
+  const zone=+$('zoneCar').value;
+  const dt=Math.max(t,zone);
+  const p=m*v;
+  const dp=-p;
+  const force=Math.abs(dp)/dt;
+  const ke=.5*m*v*v;
+
+  $('massCarOut').textContent=fmt(m)+' kg';
+  $('speedCarOut').textContent=fmt(v)+' m/s';
+  $('timeCarOut').textContent=dec(dt)+' s';
+  $('pCar').textContent=fmt(p);
+  $('dpCar').textContent='−'+fmt(Math.abs(dp));
+  $('jCar').textContent='−'+fmt(Math.abs(dp));
+  $('fCar').textContent=fmt(force);
+  $('keCar').textContent=fmt(ke);
+  $('carStatus').textContent='Mobil berhenti setelah tumbukan';
+  $('carEmoji').style.left='68%';
+  $('carInsight').textContent=
+    'Momentum awal = '+fmt(p)+' kg m/s. Karena mobil berhenti, besar perubahan momentumnya '+fmt(p)+' kg m/s. Dalam model ini, waktu tumbukan '+dec(dt)+' s menghasilkan besar gaya rata-rata sekitar '+fmt(force)+' N.';
+}
+['massCar','speedCar','timeCar','zoneCar'].forEach(id=>{
+  $(id).addEventListener('input',updateCar);
+  $(id).addEventListener('change',updateCar);
+});
+$('resetCar').addEventListener('click',()=>{
+  $('massCar').value=1000;
+  $('speedCar').value=20;
+  $('timeCar').value=.2;
+  $('zoneCar').value=.2;
+  updateCar();
+});
+
+function updateBall(){
+  const m=+$('massBall').value;
+  const v=+$('speedBall').value;
+  const t=+$('timeBall').value;
+  const p=m*v;
+  const f=p/t;
+  const ke=.5*m*v*v;
+  $('massBallOut').textContent=dec(m)+' kg';
+  $('speedBallOut').textContent=fmt(v)+' m/s';
+  $('timeBallOut').textContent=dec(t)+' s';
+  $('pBall').textContent=fmt(p);
+  $('jBall').textContent='−'+fmt(p);
+  $('fBall').textContent=fmt(f);
+  $('keBall').textContent=fmt(ke);
+  $('ballEmoji').style.left='65%';
+  $('ballEmoji').style.top='78px';
+}
+['massBall','speedBall','timeBall'].forEach(id=>{
+  $(id).addEventListener('input',updateBall);
+});
+$('resetBall').addEventListener('click',()=>{
+  $('massBall').value=.5;
+  $('speedBall').value=10;
+  $('timeBall').value=.2;
+  updateBall();
+});
+
+const answers={
+  q1:{
+    correct:'b',
+    explanation:'p = m × v = 1.000 × 20 = 20.000 kg m/s. Karena benda berhenti, perubahan momentum bertanda negatif; besarnya 20.000 kg m/s.'
+  },
+  q2:{
+    correct:'b',
+    explanation:'Karena perubahan momentum sama, impulsnya sama. Waktu lebih singkat berarti besar gaya rata-rata model lebih besar.'
+  },
+  q3:{
+    correct:'c',
+    explanation:'Zona remuk dapat memperpanjang waktu tumbukan dan menyerap energi. Untuk perubahan momentum yang sama, waktu tumbukan lebih lama dapat mengurangi besar gaya rata-rata.'
+  },
+  q4:{
+    correct:'a',
+    explanation:'Besar impuls = besar perubahan momentum = m × v = 0,5 × 10 = 5 N s.'
+  },
+  q5:{
+    correct:'b',
+    explanation:'Jika momentum awal sama dan kedua benda berhenti, besar perubahan momentum dan impulsnya sama. Waktu dan gaya rata-ratanya tidak harus sama.'
+  }
+};
+
+$('quiz').addEventListener('submit',e=>{
+  e.preventDefault();
+  let score=0;
+  let total=Object.keys(answers).length;
+  for(const [q,data] of Object.entries(answers)){
+    const chosen=document.querySelector('input[name="'+q+'"]:checked');
+    const fb=$('fb'+q.slice(1));
+    if(chosen && chosen.value===data.correct){
+      score++;
+      fb.className='feedback good';
+      fb.textContent='Benar! '+data.explanation;
+    }else{
+      fb.className='feedback bad';
+      fb.textContent='Belum tepat. '+data.explanation;
+    }
+  }
+  $('scoreBox').style.display='block';
+  $('scoreBox').innerHTML='<h3>Skor: '+score+'/'+total+' ('+(score/total*100)+'%)</h3>'+
+    '<p>'+ (score===total?'Hebat! Semua jawaban benar.':
+    score>=3?'Bagus! Tinjau kembali pembahasan yang belum tepat.':
+    'Ayo pelajari kembali hasil simulasi, lalu coba lagi.')+'</p>';
+  localStorage.setItem('momentumQuizScore',score+'/'+total);
+});
+
+$('clearQuiz').addEventListener('click',()=>{
+  $('quiz').reset();
+  document.querySelectorAll('.feedback').forEach(f=>{
+    f.textContent='';f.className='feedback';
+  });
+  $('scoreBox').style.display='none';
+});
+
+$('saveReflection').addEventListener('click',()=>{
+  localStorage.setItem('momentumReflection',$('reflection').value);
+  $('saveStatus').textContent='Refleksi tersimpan di perangkat ini.';
+});
+$('reflection').value=localStorage.getItem('momentumReflection')||'';
+
+$('downloadReport').addEventListener('click',()=>{
+  const score=localStorage.getItem('momentumQuizScore')||'Belum dikerjakan';
+  const reflection=$('reflection').value||'Belum diisi';
+  const report=
+`LAPORAN BELAJAR: MOMENTUM DAN IMPULS
+
+Skor tantangan analisis: ${score}
+
+REFLEKSI SISWA:
+${reflection}
+
+HASIL SIMULASI MOBIL:
+Massa: ${$('massCar').value} kg
+Kecepatan: ${$('speedCar').value} m/s
+Waktu tumbukan model: ${$('timeCarOut').textContent}
+Momentum awal: ${$('pCar').textContent} kg m/s
+Impuls: ${$('jCar').textContent} N s
+Besar gaya rata-rata model: ${$('fCar').textContent} N
+
+HASIL SIMULASI BOLA:
+Massa: ${$('massBall').value} kg
+Kecepatan: ${$('speedBall').value} m/s
+Waktu berhenti: ${$('timeBallOut').textContent}
+Momentum awal: ${$('pBall').textContent} kg m/s
+Impuls: ${$('jBall').textContent} N s
+Besar gaya rata-rata model: ${$('fBall').textContent} N
+
+Catatan: hasil ini berasal dari model sederhana untuk pembelajaran.
+`;
+  const blob=new Blob([report],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='laporan-momentum-impuls.txt';
+  a.click();URL.revokeObjectURL(url);
+});
+
+updateCar();
+updateBall();
+</script>
+</body>
+</html>
